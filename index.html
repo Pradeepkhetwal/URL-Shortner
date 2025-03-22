@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Url Shortner</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1>URL Shortner</h1>
+
+      <form id="shorten-form">
+        <div>
+          <label for="url">Enter Url:</label>
+          <!-- The name attribute gives the input element a name, which is important for form submission.
+
+          When the form is submitted, the browser will send the name and value of the input field to the server. means ye key value pair bana k browser ko send kar dega like url:"value entered by user."
+
+          -->
+          <input type="text" name="url" id="url" required />
+        </div>
+        <div>
+          <label for="shortcode">Enter shortcode</label>
+          <input type="text" name="shortcode" id="shortcode" required />
+        </div>
+
+        <button type="submit">Shorten</button>
+      </form>
+
+      <h2>Shortend URLs</h2>
+      <ul id="shortend-urls"></ul>
+    </div>
+    <!-- Now we will get the data entered by user in the form by using the below javascript code. -->
+    <script>
+      // first we are getting the form by it's id then there is a method called as addeventlistner which attaches the an event listener to the shortend-form element . \
+
+      // Now this event listner takes 2 parameters on is the event which you want to listen and other is the callback function that will be triggered when the mentioned event in the parameter 1 is invoked.
+
+      // The event in the callback function is an Event Object that is automatically passed to the function when an event occurs, it contains all the information of the event occured along with many methods and properties.
+
+      //So here we are listening to the submit event so as soon as user submit the form the callback function will run.
+
+      // event.preventDefault() -:
+
+      // The event.preventDefault() method prevents the form from performing its default submit action (which would typically cause a page reload or a form submission to the server).
+      // In this case, the form data will be handled using JavaScript instead of submitting it through the normal form submission process.
+
+      document
+        .getElementById("shorten-form")
+        .addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          // new FormData(event.target) creates a new FormData object. The event.target refers to the element that triggered the event — in this case, it's the form (shorten-form).
+
+          // The FormData object automatically collects the data from all form elements (input fields, etc.) inside the form and prepares it for use. It essentially gathers the name and value of each form field.
+          const formData = new FormData(event.target);
+
+          //now this formData object has many methods out of which one is get() which is used to get the values of the keys which we pass inside this function, so humare input mein name was url, shortcode so it will be keys in the backend so user ne jo bhi data enter kiya hoga wo ab mil jayega.
+          const url = formData.get("url");
+          const shortcode = formData.get("shortcode");
+
+          console.log(url, shortcode);
+        });
+    </script>
+  </body>
+</html>
