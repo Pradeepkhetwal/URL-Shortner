@@ -47,7 +47,7 @@ const serveFile = async (res, filePath, contentType) => {
     // data (optional): You can pass some data to res.end() if you want to send a body with the response. This could be HTML, JSON, text, or any other data you want to send back to the client. If no data is passed, it simply ends the response.You can send data like res.end("<h1>Welcome to the homepage!</h1>");In this case, the string "<h1>Welcome to the homepage!</h1>" will be sent as the body of the response. The server has already sent the headers (like content type) with res.writeHead(), and now res.end() is sending the actual content back to the client.
     res.end(data);
   } catch (error) {
-    res.writeHead(404, { "Content-Type": "content/plain" });
+    res.writeHead(404, { "Content-Type": "text/plain" });
     res.end("404 page not found")
   }
 };
@@ -82,12 +82,12 @@ const server = createServer(async (req, res) => {
       return serveFile(res, path.join("public", "index.html"), "text/html");
     }
     //if we are requesting get request.
-    else if (req.method === 'GET') {
+    else 
       //if we are requesting this route then serve the style.css file.
       if (req.url === "/style.css") {
         return serveFile(res, path.join("public", "style.css"), "text/css");
       }
-    }
+    
   }
 
   if (req.method === 'POST' && req.url === "/shorten") {
