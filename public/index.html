@@ -12,7 +12,7 @@
 
       <form id="shorten-form">
         <div>
-          <label for="url">Enter Url:</label>
+          <label for="url">Enter URL:</label>
           <!-- The name attribute gives the input element a name, which is important for form submission.
 
           When the form is submitted, the browser will send the name and value of the input field to the server. means ye key value pair bana k browser ko send kar dega like url:"value entered by user."
@@ -21,8 +21,8 @@
           <input type="text" name="url" id="url" required />
         </div>
         <div>
-          <label for="shortcode">Enter shortcode</label>
-          <input type="text" name="shortcode" id="shortcode" required />
+          <label for="shortCode">Enter ShortCode</label>
+          <input type="text" name="shortCode" id="shortCode" required />
         </div>
 
         <button type="submit">Shorten</button>
@@ -54,13 +54,20 @@
         shortcode will be the key (abcd123 or xyz789).
         url will be the value (https://example.com or https://anotherurl.com).*/
 
-        for (const [shortcode, url] of Object.entries(links)) {
+        for (const [shortCode, url] of Object.entries(links)) {
           //is creates an empty <li></li> element
           //here we in this createElement function we pass an string defining the tag we want to create.
           const li = document.createElement("li");
+
+          //dekho agar url ki length > 30 to wo frontend mein form se bahar aa raha hai. so hum us url ko truncate kar skte hai yani chota bana skte hai taki wo acche se show ho.
+          //below is ternary operator ? k baad wala code will run when condition is  true  (: k baad is false).
+          //url.slice se url suppose 40 length ka kyu na ho use we are slicing to length 30 aur last mein ... add kar re hai taki pata chal jaye ki url ki slicing ki hai , and if length of url is already < 30 to direct url hi use hoga no slicing.f
+          const truncatedURL =
+            url.length >= 30 ? `${url.slice(0, 30)}...` : url;
+
           //li element k andar we are writing the shortcode and url to be shown.
           //target="_blank" makes sure that when the user clicks the link, it opens in a new tab.
-          li.innerHTML = `<a href="/${shortcode}" target ="_blank">${window.location.origin}/${shortcode}</a> -${url}`;
+          li.innerHTML = `<a href="/${shortCode}" target ="_blank">${window.location.origin}/${shortCode}</a> -${truncatedURL}`;
           //to add li elements in the ul element which is here referred by the name list.
           list.appendChild(li);
         }
@@ -91,11 +98,12 @@
 
           //now this formData object has many methods out of which one is get() which is used to get the values of the keys which we pass inside this function, so humare input mein name was url, shortcode so it will be keys in the backend so user ne jo bhi data enter kiya hoga wo ab mil jayega.
           const url = formData.get("url");
-          const shortcode = formData.get("shortcode");
+          const shortCode = formData.get("shortCode");
           console.log(typeof url);
-          console.log(url, shortcode);
+          console.log(url, shortCode);
 
           try {
+            console.log("shorten try");
             const response = await fetch("/shorten", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -105,10 +113,11 @@
               //in the request body we are sending the input values entered by user in the form i.e url , shortcode in the json format to the server.
               //below we are passing an object whose properties are url,shortcode and we are converting it to json format so that we can send it to server.
               //by object property i mean object will look like  obj ={url:"user entered value in the form",shortcode:"user entered value in the form"}
-              body: JSON.stringify({ url, shortcode }),
+              body: JSON.stringify({ url, shortCode }),
             });
             if (response.ok) {
               //jab form successfully submit ho jaye to iss fetchShortendURL function ko call karenge to show the shortend links in the frontend.
+              console.log("shorten response ok");
               fetchShortendURL();
               alert("form submitted successfully");
 

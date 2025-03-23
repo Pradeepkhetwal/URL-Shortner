@@ -9,7 +9,8 @@ import { readFile } from 'fs/promises';
 import path from 'path'
 import { writeFile } from 'fs/promises';
 import crypto from "crypto"
-import {json} from "stream/consumers"
+import { json } from "stream/consumers"
+
 
 
 const PORT = 2999;
@@ -55,7 +56,6 @@ const serveFile = async (res, filePath, contentType) => {
 //it will fetch all the json data that is present in the links.json file
 const loadLinks = async () => {
   try {
-    
     const data = await readFile(DATA_FILE, 'utf-8');
     return JSON.parse(data);
   } catch (error) {
@@ -81,10 +81,9 @@ const server = createServer(async (req, res) => {
       //here this path.join("public",index.html) means we are providing the path of index.html which is present in the public folder so that it can be served.
       return serveFile(res, path.join("public", "index.html"), "text/html");
     }
-    //if we are requesting get request.
-    else
-      //if we are requesting this route then serve the style.css file.
-      if (req.url === "/style.css") {
+      
+     //if we are requesting this route then serve the style.css file.
+    else if (req.url === "/style.css") {
         return serveFile(res, path.join("public", "style.css"), "text/css");
       } else if (req.url === '/links') {
      
@@ -94,9 +93,26 @@ const server = createServer(async (req, res) => {
 
       return res.end(JSON.stringify(links));
       }
-    
-    
-    
+    //inside this else part we are writing the logic so that user jab shortlink shown in the frontend pe click kare to wo actual mein original url pe redirect ho.
+    else {
+      const links = await loadLinks();
+      // So when the user will click on the (shortlink) shown in the frontend , so we will have that request in req.url 
+      
+      //slice(1) means slicing the url from index 1 to last index because at 0th index we will have an '/' which we don't want so we are slicing it.
+      const shortCode = req.url.slice(1);
+
+      console.log("links red. ", req.url);
+
+      //now shortlink is like a key whose value is the original url so if the shortlink exists in the links.json file then simply writehead mein 302(page found status code) send karo and location header is used to redirect to the specific url here it is links[shortCode].
+      if (links[shortCode]) {
+        res.writeHead(302, { location: links[shortCode] });
+        return res.end();
+      }
+      //if page not found then send 404 shortcode.
+      res.writeHead(404, { "contentType":"text/plain"});
+      return res.end("Shortend url is not found");
+    }
+      
   }
 
   if (req.method === 'POST' && req.url === "/shorten") {
@@ -118,7 +134,7 @@ const server = createServer(async (req, res) => {
     req.on("end", async () => {
       console.log(body)
       //jo data response se aya hai usse js object mein convert karke destructure kar lo.
-      const { url, shortcode } = JSON.parse(body)
+      const { url, shortCode } = JSON.parse(body)
       console.log("hello");
       console.log(url);
       
@@ -136,7 +152,8 @@ const server = createServer(async (req, res) => {
       // In this case, size is 4, so crypto.randomBytes(4) generates 4 random bytes.
       // .toString("hex"):
       // The .toString("hex") method is used to convert the binary data (random bytes) into a hexadecimal string.Hexadecimal is commonly used to represent binary data in a more human-readable format.
-      const finalShortCode = shortcode ;
+      const finalShortCode = shortCode?.trim() ? shortCode : crypto.randomBytes(4).toString("hex");
+
 
        //This links is the whole data of the json file present in the data folder in links.json file.
       // so by doing links[finalShortCode] we are accessing the value finalShortCode. so agar finalShortCode ki value already present in the links.json file this means we are trying to store a value that already exists in the file so it is a case of duplicasy so in that case user must enter another shortCode in the form.
