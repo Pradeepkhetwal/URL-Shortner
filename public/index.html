@@ -33,6 +33,39 @@
     </div>
     <!-- Now we will get the data entered by user in the form by using the below javascript code. -->
     <script>
+      //this function is used to show the shortend url in the frontend (means final result ko frontend mein show karta hai ye function.)
+      const fetchShortendURL = async () => {
+        const response = await fetch("/links");
+
+        //converting json data into javascript object.
+        const links = await response.json();
+
+        //now to show newly added data in the frotend first we will refer to the ul element whose id is shortend-urls.
+        const list = document.getElementById("shortend-urls");
+
+        //clear kar lo if already anything is present in the ul(unordered list) element.
+        list.innerHTML = "";
+
+        //with this loop we will add li elements in the ul elements each of these li elements will be shortend links and will be shown to the frontend.
+
+        //  The Object.entries(links) method is used to turn the links object into an array of key-value pairs.
+        // Object.entries() converts this object into an array of arrays where each inner array contains a key-value pair.
+        /* The for...of loop will then iterate over this array of arrays, and for each entry:
+        shortcode will be the key (abcd123 or xyz789).
+        url will be the value (https://example.com or https://anotherurl.com).*/
+
+        for (const [shortcode, url] of Object.entries(links)) {
+          //is creates an empty <li></li> element
+          //here we in this createElement function we pass an string defining the tag we want to create.
+          const li = document.createElement("li");
+          //li element k andar we are writing the shortcode and url to be shown.
+          //target="_blank" makes sure that when the user clicks the link, it opens in a new tab.
+          li.innerHTML = `<a href="/${shortcode}" target ="_blank">${window.location.origin}/${shortcode}</a> -${url}`;
+          //to add li elements in the ul element which is here referred by the name list.
+          list.appendChild(li);
+        }
+      };
+
       // first we are getting the form by it's id then there is a method called as addeventlistner which attaches the an event listener to the shortend-form element . \
 
       // Now this event listner takes 2 parameters on is the event which you want to listen and other is the callback function that will be triggered when the mentioned event in the parameter 1 is invoked.
@@ -75,6 +108,8 @@
               body: JSON.stringify({ url, shortcode }),
             });
             if (response.ok) {
+              //jab form successfully submit ho jaye to iss fetchShortendURL function ko call karenge to show the shortend links in the frontend.
+              fetchShortendURL();
               alert("form submitted successfully");
 
               //clears the input fields once submitted, event.target refers to the form that triggered the submit event,
@@ -87,6 +122,8 @@
             console.log(error);
           }
         });
+      //normal case when data is not submitted to purane submitted shortlinks ko show karne k liye we need to call this function here as well agar yaha par call nahi karenge to shortlinks will be shown only when submit button is clicked.
+      fetchShortendURL();
     </script>
   </body>
 </html>
