@@ -48,7 +48,7 @@
 
       document
         .getElementById("shorten-form")
-        .addEventListener("submit", (event) => {
+        .addEventListener("submit", async (event) => {
           event.preventDefault();
 
           // new FormData(event.target) creates a new FormData object. The event.target refers to the element that triggered the event — in this case, it's the form (shorten-form).
@@ -59,8 +59,33 @@
           //now this formData object has many methods out of which one is get() which is used to get the values of the keys which we pass inside this function, so humare input mein name was url, shortcode so it will be keys in the backend so user ne jo bhi data enter kiya hoga wo ab mil jayega.
           const url = formData.get("url");
           const shortcode = formData.get("shortcode");
-
+          console.log(typeof url);
           console.log(url, shortcode);
+
+          try {
+            const response = await fetch("/shorten", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+
+              //The JSON.stringify() function in JavaScript is used to convert a JavaScript object or value into a JSON string.
+
+              //in the request body we are sending the input values entered by user in the form i.e url , shortcode in the json format to the server.
+              //below we are passing an object whose properties are url,shortcode and we are converting it to json format so that we can send it to server.
+              //by object property i mean object will look like  obj ={url:"user entered value in the form",shortcode:"user entered value in the form"}
+              body: JSON.stringify({ url, shortcode }),
+            });
+            if (response.ok) {
+              alert("form submitted successfully");
+
+              //clears the input fields once submitted, event.target refers to the form that triggered the submit event,
+              event.target.reset();
+            } else {
+              const errorMessage = await response.text();
+              alert(errorMessage);
+            }
+          } catch (error) {
+            console.log(error);
+          }
         });
     </script>
   </body>

@@ -7,9 +7,14 @@ import { readFile } from 'fs/promises';
 
 //This is default import here we import the complete module.
 import path from 'path'
+import { writeFile } from 'fs/promises';
+import crypto from "crypto"
+import {json} from "stream/consumers"
 
 
 const PORT = 2999;
+//this is path to the file links.json present in data folder 
+const DATA_FILE = path.join("data", "links.json");
 
 //This function is used to serve the html and css file in this link(by default jaha par server response bhejta hai ye wo address hi hai bhai node app.js karke dekh lena terminal mein) http://localhost:2999 when we run our server.
 
@@ -47,8 +52,27 @@ const serveFile = async (res, filePath, contentType) => {
   }
 };
 
+//it will fetch all the json data that is present in the links.json file
+const loadLinks = async () => {
+  try {
+    
+    const data = await readFile(DATA_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      await writeFile(DATA_FILE, JSON.stringify({}));
+      return {};
+    }
+    throw error;
+  }
+};
+//will write the data in the links.json file whose path is stored in data_file .
+const saveLinks = async (links) => {
+  await writeFile(DATA_FILE, JSON.stringify(links));
+};
+
 //we create server in nodejs using createServer method(inbuilt method in Nodejs in https module).
-const server = createServer((req, res) => {
+const server = createServer(async (req, res) => {
   console.log(req.url);
   //if we have a get request.
   if (req.method === "GET") {
@@ -64,6 +88,62 @@ const server = createServer((req, res) => {
         return serveFile(res, path.join("public", "style.css"), "text/css");
       }
     }
+  }
+
+  if (req.method === 'POST' && req.url === "/shorten") {
+    const links = await loadLinks();
+
+    let body = "";
+    
+    // The req.on() method in Node.js is used to handle events on an incoming request object (represented by req) in a server. It is typically used to read data from the request.
+
+    // In the context of HTTP requests, req.on() allows you to listen to specific events on the request stream, such as: data , end,error.
+
+    // data: Fired when there is data coming in the request body (for example, when the client sends a POST request).
+    // end: Fired when the request has been completely received and there is no more data to be read.
+    //error:Fired when the req has some error.
+    req.on("data", (chunk) => {
+      body += chunk
+    });
+
+    req.on("end", async () => {
+      console.log(body)
+      //jo data response se aya hai usse js object mein convert karke destructure kar lo.
+      const { url, shortcode } = JSON.parse(body)
+      console.log("hello");
+      console.log(url);
+      
+      //agar url nahi aya to error show karo.
+      if (!url) {
+        res.writeHead(400, { "Content-Type": "text/plain" })
+        return res.end("URL is required");
+
+      }
+
+      //if shortcode is not present then generate random shortcode using crypto module.
+      // The crypto.randomBytes(4).toString("hex") expression is part of the crypto module in Node.js, which is used for cryptographic operations, such as generating random data, hashing, encryption, etc.
+
+      // The crypto.randomBytes(size) method generates a buffer containing size random bytes (where size is passed as an argument).
+      // In this case, size is 4, so crypto.randomBytes(4) generates 4 random bytes.
+      // .toString("hex"):
+      // The .toString("hex") method is used to convert the binary data (random bytes) into a hexadecimal string.Hexadecimal is commonly used to represent binary data in a more human-readable format.
+      const finalShortCode = shortcode ;
+
+       //This links is the whole data of the json file present in the data folder in links.json file.
+      // so by doing links[finalShortCode] we are accessing the value finalShortCode. so agar finalShortCode ki value already present in the links.json file this means we are trying to store a value that already exists in the file so it is a case of duplicasy so in that case user must enter another shortCode in the form.
+      if (links[finalShortCode]) {
+        res.writeHead(400,{"Content-Type":"text/plain"})
+        return res.end("Short code already exists Please choose another")
+      }
+     
+      //if shortcode does not already exists in the links.json file then assign the shortcode the url value and save them to links.json file by using savelinks function.
+      links[finalShortCode] = url;
+      await saveLinks(links);
+      res.writeHead(200, { "Content-Type": "application/json" });
+     
+      res.end()
+
+    })
   }
 });
 
